@@ -49,7 +49,7 @@ public class EncryptedServer {
 			}
 			
 		} else {
-			System.out.println("[Server] Arguments must only include port number");
+			System.out.println("[Server] Arguements must only include port number");
 			return;
 		}
 	}
