@@ -2,18 +2,26 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
 public class EncryptedServer {
+	private static BigInteger e;
+	private static BigInteger d;
+	private static BigInteger n;
+	
 	@SuppressWarnings("resource")
 	public static void main(String sa[]) throws IOException, InterruptedException {
 		String receivedMessage = "";
 		String sendMessage = "";
 		ServerSocket socket = null;
 		int port = 0;
+		
+		generateKeys(2048);
 		
 		if(sa.length == 1) {
 			port = Integer.parseInt(sa[0]);
@@ -41,11 +49,15 @@ public class EncryptedServer {
 				
 				receivedMessage = input.readLine();
 				System.out.println("[Server] Message received from client: " + receivedMessage);
-				output.writeBytes("Acknowledged: " + receivedMessage + "\n");
+				
+				if(receivedMessage.equals("KEYREQ")) {
+					output.writeBytes(getE().toString() + ":" + getN().toString() +"\n");;
+				}
+				//output.writeBytes("Acknowledged: " + receivedMessage + "\n");
 				receivedMessage = "";
 				
 				System.out.println("[Server] Waiting...");
-				TimeUnit.SECONDS.sleep(5);
+				TimeUnit.SECONDS.sleep(1);
 			}
 			
 		} else {
@@ -53,4 +65,52 @@ public class EncryptedServer {
 			return;
 		}
 	}
+	
+	private static void generateKeys(int size) {
+		int keySize = size;
+
+		// Generate some random primes
+		BigInteger prime1 = new BigInteger(keySize / 2, 100, new SecureRandom());
+		BigInteger prime2 = new BigInteger(keySize / 2, 100, new SecureRandom());
+
+		//Calculate the modulus for the public and private keys (n = pq)
+		setN(prime1.multiply(prime2));
+		
+		//Calculate the totient (tot = (p - 1)(q - 1))
+		BigInteger totient = prime1.subtract(BigInteger.ONE).multiply(prime2.subtract(BigInteger.ONE));
+
+		//Create the public exponent (used to encrypt)
+		BigInteger tempE;
+		do tempE = new BigInteger(totient.bitLength(), new SecureRandom());
+		while (tempE.compareTo(BigInteger.ONE) <= 0 || tempE.compareTo(totient) >= 0 || !tempE.gcd(totient).equals(BigInteger.ONE));
+		setE(tempE);
+		
+		//Create the private exponent (used to decrypt)
+		setD(getE().modInverse(totient));
+	}
+
+	private static BigInteger getE() {
+		return e;
+	}
+
+	private static void setE(BigInteger publicKey) {
+		e = publicKey;
+	}
+
+	private static BigInteger getD() {
+		return d;
+	}
+
+	private static void setD(BigInteger privateKey) {
+		d = privateKey;
+	}
+
+	private static BigInteger getN() {
+		return n;
+	}
+
+	private static void setN(BigInteger modulus) {
+		n = modulus;
+	}
+	
 }
