@@ -20,7 +20,7 @@ public class EncryptedServer {
 		String sendMessage = "";
 		ServerSocket socket = null;
 		int port = 0;
-		
+
 		generateKeys(2048);
 		
 		if(sa.length == 1) {
@@ -45,19 +45,31 @@ public class EncryptedServer {
 				//Establish input and output
 				BufferedReader input = new BufferedReader(new InputStreamReader(conSocket.getInputStream()));
 				DataOutputStream output = new DataOutputStream(conSocket.getOutputStream());
-				System.out.println("[Server] Buffers established.");
 				
 				receivedMessage = input.readLine();
-				System.out.println("[Server] Message received from client: " + receivedMessage);
 				
+				//Check for key request
 				if(receivedMessage.equals("KEYREQ")) {
+					System.out.println("[Server] Key request received.");
 					output.writeBytes(getE().toString() + ":" + getN().toString() +"\n");;
-				}
-				//output.writeBytes("Acknowledged: " + receivedMessage + "\n");
+				}				
+				
+				//now the will need to decrypt the messages
+				receivedMessage = input.readLine();
+				BigInteger dec = new BigInteger(receivedMessage);
+				String message = new String(dec.toByteArray());
+				System.out.println("[Server] encrypted: " + message);
+				dec = dec.modPow(d, n);
+				message = new String(dec.toByteArray());
+				System.out.println("[Server] decrypted: " + message);
 				receivedMessage = "";
 				
-				System.out.println("[Server] Waiting...");
-				TimeUnit.SECONDS.sleep(1);
+				
+				
+				
+				
+				System.out.println("[Server] Message exchange complete.");				
+				System.out.println("[Server] Waiting for next request...");
 			}
 			
 		} else {
