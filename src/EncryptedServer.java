@@ -66,8 +66,9 @@ public class EncryptedServer {
 				
 				for(int i = 0; i < 3; i++) {
 					message = unpadString(message);
-					System.out.println(message);
 				}	
+				
+				System.out.println("[Server] unpadded: " + message);
 				
 				System.out.println("[Server] Message exchange complete.");				
 				System.out.println("[Server] Waiting for next request...");
