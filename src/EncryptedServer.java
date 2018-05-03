@@ -64,9 +64,10 @@ public class EncryptedServer {
 				System.out.println("[Server] decrypted: " + message);
 				receivedMessage = "";
 				
-				
-				
-				
+				for(int i = 0; i < 3; i++) {
+					message = unpadString(message);
+					System.out.println(message);
+				}	
 				
 				System.out.println("[Server] Message exchange complete.");				
 				System.out.println("[Server] Waiting for next request...");
@@ -99,6 +100,25 @@ public class EncryptedServer {
 		
 		//Create the private exponent (used to decrypt)
 		setD(getE().modInverse(totient));
+	}
+	
+	public static String unpadString(String text) {
+		StringBuilder sb = new StringBuilder(text);
+		
+		int pad = Character.getNumericValue(sb.charAt(0));
+		sb.deleteCharAt(0);
+		
+		StringBuilder res = new StringBuilder();
+		int padPos = pad + 1;
+		int prev = 1;
+		while(padPos < sb.length()) {
+			res.append(sb.substring(prev, padPos));
+			prev = padPos + 1;
+			padPos += pad + 1;
+		}
+		res.append(sb.substring(prev));
+		
+		return res.toString();
 	}
 
 	private static BigInteger getE() {
